@@ -20,9 +20,10 @@ Param (
 		} else {
 			$Since = (Get-Date).AddDays(-1)
 		}
+		$Since = Get-Date $(Get-Date $Since -Format 'yyy-MM-dd')
 	}
 
-	if ($null -eq $Author) {
+	if ($null -eq $Author -or "" -eq $Author) {
 		$Author = (git config --get user.name)
 	}
 
@@ -36,13 +37,13 @@ Param (
 		$Log = "$Path\$(Get-Date $Since -Format 'yyyy-MM-dd').git.log"
 	}
 
-	Write-Host "Writing to file $Log"
+	Write-Host "Writing to file $Log for $Author since $Since"
 
 	Get-ChildItem -Attributes directory+hidden -Recurse '.git' `
 	| ForEach-Object { 
 			Write-Host $_.FullName
 			Set-Location $_
-			git log --author='Ken LeFebvre' --since="$Since" --until='now' --all --format='%Cgreen%ci%Creset %s%Creset' --no-merges
+			git log --author="$Author" --since="$(Get-Date $Since -Format 'yyyy-MM-dd')" --until='now' --all --format='%Cgreen%ci%Creset %s%Creset' --no-merges
 		} `
 	| Tee-Object $Log
 
