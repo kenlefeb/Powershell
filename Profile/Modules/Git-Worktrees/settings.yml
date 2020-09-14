@@ -1,0 +1,7 @@
+username: ken
+default-branch: master
+repository-commands:
+  - quest: 
+    - cd ui
+    - npm install
+    - cd ..
