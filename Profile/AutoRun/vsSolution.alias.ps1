@@ -65,55 +65,21 @@ Function Get-VisualStudioPath{
 
 Function Start-VisualStudio(
     $Path, 
-    [ValidateSet('2017', '2019', 'rider')]$Version,
-    [ValidateSet('Professional', 'Enterprise')]$Edition,
     $Developer = 'Ken',
     [switch]$Admin,
     [switch]$WhatIf
 ) {
 
-    # Default Values based on Computer Name
-    switch ($env:COMPUTERNAME) {
-        'KENLEFEB' {
-            if ($null -eq $Version) {
-                $Version = '2019'
-            }
-            if ($null -eq $Edition) {
-                $Edition = 'Professional'
-            }
-        }
-        '7HSMQ13' {
-            if ($null -eq $Version) {
-                $Version = '2019'
-            }
-            if ($null -eq $Edition) {
-                switch ($Version) {
-                    '2017' {
-                        $Edition = 'Enterprise'
-                    }
-                    '2019' {
-                        $Edition = 'Professional'
-                    }
-                }
-            }
-        }
-    }
-
-    $vsRoot = 'C:\Program Files (x86)\Microsoft Visual Studio'
-    $jetBrainsRoot = "$env:USERPROFILE\AppData\Local\JetBrains"
-
     if ($Admin.IsPresent) {
         Write-Host "With administrative privileges"
     }
 
-    if ($Version -eq 'rider') {
-        Write-Host "Using JetBrains Rider"
-        $devenv = "$jetBrainsRoot\Toolbox\apps\Rider\ch-0\192.6584.65\bin\rider64.exe"
-    }
-    else {
-        Write-Host "Using Microsoft Visual Studio $Version $Edition"
-        $devenv = "$vsRoot\$Version\$Edition\Common7\IDE\devenv.exe"
-    }
+    $ide = Get-VisualStudioPath
+    $edition = $ide.Name
+    $version = $($ide.Parent).Name
+
+    $devenv = Get-ChildItem $ide -Include devenv.exe -Recurse
+    Write-Host "Using Microsoft Visual Studio $version $edition"
 
     $file = [System.IO.FileInfo](Get-Solution -Path $Path -Developer $Developer)
 
