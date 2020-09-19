@@ -1,8 +1,3 @@
-# Incorporate the Visual Studio Developer Shell
-$location = Get-Location
-. "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\Common7\Tools\Launch-VsDevShell.ps1"
-Set-Location $location
-
 # Launch Visual Studio with solution
 
 if (Test-Path function:Start-VisualStudio) {
@@ -10,6 +5,62 @@ if (Test-Path function:Start-VisualStudio) {
 }
 else {
     Write-Host "Defining the VS alias"
+}
+
+Function Start-VsDevShell {
+    # Incorporate the Visual Studio Developer Shell
+    $location = Get-Location
+
+    $root = Get-VisualStudioPath
+
+    if ($null -eq $root) {
+        Write-Error "Could not find an installed copy of Visual Studio."
+        return
+    }
+
+    $script = Get-ChildItem $root -Include 'Launch-VsDevShell.ps1' -Recurse
+
+    if ($null -eq $script) {
+        Write-Error "Could not find the Launch-VsDevShell.ps1 script."
+        return
+    }
+
+    $command = ". `"$($script.FullName)`""
+
+    Invoke-Expression $command
+
+    Set-Location $location
+}
+
+Function Get-VisualStudioPath{
+
+    $root = "${env:ProgramFiles(x86)}\Microsoft Visual Studio"
+
+    if (!(Test-Path $root)) {
+        Write-Error "Visual Studio is not installed on this machine."
+        return
+    }
+
+    $versions = (Get-ChildItem $root -Directory | Where-Object -Property Name -Match '\d{4}' | Sort-Object -Property Name -Descending)
+
+    if ($versions.Length -eq 0) {
+        Write-Host "There are no versions of Visual Studio installed on this machine."
+        return
+    }
+
+    $latest = $versions[0]
+
+    $editions = (Get-ChildItem $latest -Directory | Where-Object -Property Name -Match '(Community|Professional|Enterprise|Preview)')
+
+    foreach( $edition in @('Enterprise','Professional','Community','Preview')) {
+        $candidate = ($editions | Where-Object -Property Name -eq $edition)
+        if ($null -ne $candidate) {
+            return $candidate
+        }
+    }
+
+    return $null
+
 }
 
 Function Start-VisualStudio(
@@ -172,3 +223,6 @@ Function Get-Solution(
 }
 
 Set-Alias -name "vs" -value "Start-VisualStudio"
+
+Write-Host "Launching the Visual Studio Developer PowerShell"
+. Start-VsDevShell
