@@ -82,7 +82,7 @@ Function Sync-DefaultBranch(
     $location = Get-Location
 
     if ($WhatIf) {
-        Write-Host "Set-Location $((Get-Worktrees)[$master])"
+        Write-Host "Set-Location $(Get-PathString (Get-Worktrees)[$master])"
     }
     else {
         Set-Location (Get-Worktrees)[$master]
@@ -229,7 +229,7 @@ Function New-Worktree(
     $master = $GitWorktreesSettings['default-branch']
 
     if ($WhatIf) {
-        Write-Host "Set-Location $((Get-Worktrees)[$master])"
+        Write-Host "Set-Location $(Get-PathString (Get-Worktrees)[$master])"
     }
     else {
         Set-Location (Get-Worktrees)[$master]
@@ -249,15 +249,15 @@ Function New-Worktree(
     $command = 'git worktree add'
 
     if (!$exists) {
-        $command = "$command -b $branch $target $master"
+        $command = "$command -b $branch $(Get-PathString $target) $master"
     }
     else {
-        $command = "$command $target $branch"
+        $command = "$command $(Get-PathString $target) $branch"
     }
 
     if ($WhatIf) {
         Write-Output $command
-        Write-Output "Set-Location $target"
+        Write-Output "Set-Location $(Get-PathString $target)"
     }
     else {
         Invoke-Expression $command
@@ -370,10 +370,22 @@ else {
     $GitWorktreesSettings
 }
 
+Function Get-PathString(
+    [string] $Path
+) {
+    if ($Path -match '^[''"].*[''"]$') {
+        return $Path
+    }
+    if ($Path -match "\s") {
+        return """$Path"""
+    }
+    return $Path
+}
+
 New-Alias -Name pull -Value Sync-DefaultBranch
 New-Alias -Name trees -Value Get-Worktrees
 New-Alias -Name tree -Value New-Worktree
 New-Alias -Name deltree -Value Remove-Worktree
 New-Alias -Name branch -Value Get-CurrentBranch
 
-Export-ModuleMember -Function Get-Worktrees, New-Worktree, Remove-Worktree, Get-CurrentBranch, Sync-DefaultBranch -Alias pull, trees, tree, deltree, branch -Variable $GitWorktreesSettings
+Export-ModuleMember -Function Get-PathString, Get-Worktrees, New-Worktree, Remove-Worktree, Get-CurrentBranch, Sync-DefaultBranch -Alias pull, trees, tree, deltree, branch -Variable $GitWorktreesSettings
