@@ -32,7 +32,10 @@ Function Start-VsDevShell {
     Set-Location $location
 }
 
-Function Get-VisualStudioPath{
+Function Get-VisualStudioPath(
+    [ValidateSet('Enterprise', 'Professional', 'Community', 'Preview')]
+    [string[]] $Edition = @('Enterprise', 'Professional', 'Community', 'Preview')
+) {
 
     $root = "${env:ProgramFiles(x86)}\Microsoft Visual Studio"
 
@@ -50,10 +53,12 @@ Function Get-VisualStudioPath{
 
     $latest = $versions[0]
 
-    $editions = (Get-ChildItem $latest -Directory | Where-Object -Property Name -Match '(Community|Professional|Enterprise|Preview)')
+    $matchPattern = $Edition -join '|'
 
-    foreach( $edition in @('Enterprise','Professional','Community','Preview')) {
-        $candidate = ($editions | Where-Object -Property Name -eq $edition)
+    $editions = (Get-ChildItem $latest -Directory | Where-Object -Property Name -Match "($matchPattern)")
+
+    foreach ( $thisEdition in $Edition) {
+        $candidate = ($editions | Where-Object -Property Name -eq $thisEdition)
         if ($null -ne $candidate) {
             return $candidate
         }
@@ -66,6 +71,8 @@ Function Get-VisualStudioPath{
 Function Start-VisualStudio(
     $Path, 
     $Developer = 'Ken',
+    [ValidateSet('Enterprise', 'Professional', 'Community', 'Preview')]
+    [string] $Edition = 'Professional',
     [switch]$Admin,
     [switch]$WhatIf
 ) {
@@ -74,7 +81,7 @@ Function Start-VisualStudio(
         Write-Host "With administrative privileges"
     }
 
-    $ide = Get-VisualStudioPath
+    $ide = Get-VisualStudioPath -Edition $Edition
     $edition = $ide.Name
     $version = $($ide.Parent).Name
 
