@@ -382,10 +382,53 @@ Function Get-PathString(
     return $Path
 }
 
+Function Get-OrphanBranches(
+    [switch] $Bare
+) {
+
+    $remoteBranches = (git branch -r)
+
+    $orphans = (git branch -l) `
+    | ForEach-Object { $_.Replace(' ', '') } `
+    | Where-Object { -not ($_ -match '([\*\+].*)|master') } `
+    | Where-Object { -not ($remoteBranches -match "\s+origin/$_") }
+
+    if ($Bare) {
+        $orphans
+    }
+    else {
+
+        $branches = @{}
+
+        foreach ($branch in $orphans) {
+            $description = git log $branch -1 --date=relative --pretty='format:%ad: %s'
+            $branches.Add( $branch, $description)
+        }
+
+        $branches
+    }
+}
+
+Function Remove-OrphanBranches(
+    [switch]  $WhatIf
+) {
+    foreach ($branch in Get-OrphanBranches -Bare) {
+
+        $command = "git branch -D $branch"
+
+        if ($WhatIf) {
+            Write-Output $command
+        }
+        else {
+            Invoke-Expression $command
+        }
+    }
+}
+
 New-Alias -Name pull -Value Sync-DefaultBranch
 New-Alias -Name trees -Value Get-Worktrees
 New-Alias -Name tree -Value New-Worktree
 New-Alias -Name deltree -Value Remove-Worktree
 New-Alias -Name branch -Value Get-CurrentBranch
 
-Export-ModuleMember -Function Get-PathString, Get-Worktrees, New-Worktree, Remove-Worktree, Get-CurrentBranch, Sync-DefaultBranch -Alias pull, trees, tree, deltree, branch -Variable $GitWorktreesSettings
+Export-ModuleMember -Function Get-PathString, Get-Worktrees, New-Worktree, Remove-Worktree, Get-CurrentBranch, Sync-DefaultBranch, Get-OrphanBranches, Remove-OrphanBranches -Alias pull, trees, tree, deltree, branch -Variable $GitWorktreesSettings
