@@ -1,5 +1,5 @@
 username: ken
-default-branch: main
+default-branch: master
 repository-commands:
   - quest: 
     - Write-Host 'Copying .vs folder' ; Copy-Item "$((Get-Worktrees)['master'])\.vs" . -Recurse -Force

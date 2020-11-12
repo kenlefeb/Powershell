@@ -346,29 +346,39 @@ Function Get-Username {
     return $alias
 }
 
+Function Get-Settings() {
+    $path = ([System.IO.FileInfo]$PSCommandPath).DirectoryName
+
+    if (Test-Path "$path\$($env:COMPUTERNAME).yml") {
+        $path = "$path\$($env:COMPUTERNAME).yml"
+    }
+    else {
+        $path = "$path\settings.yml"
+    }
+
+    $default = @"
+username: me
+default-branch: master
+repository-commands: []
+"@
+
+    if (Test-Path $path) {
+        Write-Host "Using settings from $path"
+        Return (Get-Content $path | ConvertFrom-Yaml)
+    }
+    else {
+        Write-Host "Git-Worktrees module settings not found: $path"
+        Return ConvertFrom-Yaml $default
+    }
+}
+
 Function Get-RepositoryCommands(
     [string] $Name
 ) {
     return $GitWorktreesSettings['repository-commands'].$Name
 }
 
-$path = ([System.IO.FileInfo]$PSCommandPath).DirectoryName
-$path = "$path\settings.yml"
-$default = @"
-username: me
-default-branch: master
-repository-commands: []
-"@
-
-if (Test-Path $path) {
-    Write-Host "Using settings from $path"
-    $GitWorktreesSettings = (Get-Content $path | ConvertFrom-Yaml)
-}
-else {
-    Write-Host "Git-Worktrees module settings not found: $path"
-    $GitWorktreesSettings = ConvertFrom-Yaml $default
-    $GitWorktreesSettings
-}
+$GitWorktreesSettings = Get-Settings
 
 Function Get-PathString(
     [string] $Path

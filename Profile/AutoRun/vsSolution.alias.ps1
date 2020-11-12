@@ -1,5 +1,10 @@
 # Launch Visual Studio with solution
 
+if ((Get-Item env:COMPUTERNAME).Value -eq 'KENLEFEB') {
+    Write-Host "Skipping VS Tools for $env:COMPUTERNAME machine"
+    Return
+}
+
 if (Test-Path function:Start-VisualStudio) {
     Write-Host "Redefining the VS alias"
 }
@@ -169,7 +174,8 @@ Function Get-Solution(
             $Path = Get-CandidateFile "*.csproj"
         }
 
-    } else {
+    }
+    else {
 
         if ($Path.EndsWith('.sln') -eq $false -and $Path.EndsWith('.csproj') -eq $false) {
 
