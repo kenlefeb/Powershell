@@ -1,0 +1,10 @@
+alias,folder
+src,$SOURCE
+github,$SOURCE\github.com
+kenlefeb,$Source\github.com\kenlefeb
+local,$SOURCE\local\{branch}
+now,$env:USERPROFILE\Desktop\$(get-date -format 'yyyy\\MM\\dd\\HH')
+powershell,$Source\github.com\kenlefeb\PowerShell
+spikes,$SOURCE\local\spikes
+teams,$SOURCE\github.com\BlacksmithPress\Teams\{branch}
+decider,$SOURCE\github.com\BlacksmithPress\decider\{branch}

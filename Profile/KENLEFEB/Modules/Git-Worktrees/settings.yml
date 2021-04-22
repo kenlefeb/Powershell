@@ -2,15 +2,7 @@ username: ken
 default-branch: main
 repository-commands:
   - quest:
-    - Write-Host 'Copying .vs folder' ; Copy-Item "$((Get-Worktrees)['master'])\.vs" . -Recurse -Force
-    - Write-Host 'Copying .vs folder' ; Copy-Item "$((Get-Worktrees)['master'])\.vs" . -Recurse -Force
-    - $config = "$env:USERPROFILE\.nuget\nuget.config"
-    - if (Test-Path $config) { Write-Host "Copying $config to working directory" }
-    - if (Test-Path $config) { Copy-Item $config . -Force }
+    - Write-Host 'Copying .vs folder' ; Copy-Item "$((Get-Worktrees)['main'])\.vs" . -Recurse -Force
     - cd ui
     - npm install
     - cd ..
-  - notifications:
-    - $config = "$env:USERPROFILE\.nuget\nuget.config"
-    - if (Test-Path $config) { Write-Host "Copying $config to working directory" }
-    - if (Test-Path $config) { Copy-Item $config . -Force }

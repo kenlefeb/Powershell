@@ -1,18 +1,27 @@
 Write-Host "Loading the GoToFolder feature"
 
 Set-Variable -Scope Global -Name SOURCE -Value "C:\src"
-Set-Variable -Scope Global -Name SOURCE_BNSFL -Value "$SOURCE\TFS"
 
-function Reset-FolderList(
-    [string] $Path = "$PSScriptRoot\..\goToFolder.config"
+function Edit-GotoFolders(
+    [string] $Path = "$PSScriptRoot\..\goto.csv"
 ) {
+    code $Path
+}
 
+function Get-GotoFolders(
+    [string] $Path = "$PSScriptRoot\..\goto.csv"
+) {
     if (!(Test-Path $Path)) {
         Write-Error "Could not find $Path"
         return
     }
-    
-    $global:goto_folderList = Import-Csv($Path)
+    Return Import-Csv($Path)
+}
+
+function Reset-FolderList(
+    [string] $Path = "$PSScriptRoot\..\goto.csv"
+) {
+    $global:goto_folderList = Get-GotoFolders $Path
 }
 
 function Set-TargetFolder(
@@ -22,7 +31,7 @@ function Set-TargetFolder(
     $target = $global:goto_folderList | Where-Object { $_.alias -eq $alias }
 
     if ($null -eq $target) {
-        Write-Error "The alias `"$alias`" was not found in `"goToFolder.config`"."
+        Write-Error "The alias `"$alias`" was not found in `"goto.csv`"."
         return
     }
 
@@ -44,3 +53,4 @@ function Set-TargetFolder(
 
 Reset-FolderList
 Set-Alias -Name g -Value Set-TargetFolder
+Set-Alias -Name goto -Value Set-TargetFolder
